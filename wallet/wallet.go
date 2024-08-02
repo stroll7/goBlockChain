@@ -74,29 +74,34 @@ func (w *Wallet) BlockChainAddress() string {
 }
 
 type Transaction struct {
-	senderPrivateKey          *ecdsa.PublicKey
+	senderPrivateKey          *ecdsa.PrivateKey
 	senderPublicKey           *ecdsa.PublicKey
 	senderBlockChainAddress   string
 	receiverBlockChainAddress string
 	value                     float32
 }
 
-func NewTransaction(privateKey *ecdsa.PublicKey, publicKey *ecdsa.PublicKey,
+func NewTransaction(privateKey *ecdsa.PrivateKey, publicKey *ecdsa.PublicKey,
 	senderAddr string, receiverAddr string, value float32) *Transaction {
 	return &Transaction{privateKey, publicKey, senderAddr, receiverAddr, value}
 }
 
 func (t *Transaction) GenerateSignature() *Signature {
 	m, _ := json.Marshal(t)
+	h := sha256.Sum256([]byte(m))
+	r, s, _ := ecdsa.Sign(rand.Reader, t.senderPrivateKey, h[:])
+	return &Signature{r, s}
 }
 
 func (t *Transaction) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
-		senderAddr   string
+		SenderAddr   string
 		ReceiverAddr string
-		value        float32
+		Value        float32
 	}{
-		senderAddr: t.senderBlockChainAddres
+		SenderAddr:   t.senderBlockChainAddress,
+		ReceiverAddr: t.receiverBlockChainAddress,
+		Value:        t.value,
 	})
 }
 
