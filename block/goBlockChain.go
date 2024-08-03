@@ -68,15 +68,26 @@ type BlockChain struct {
 	transactionPool   []*Transaction
 	chain             []*Block
 	blockChainAddress string //区块链节点地址
+	Port              uint16
 }
 
-// 定义一个区块链对象
-func NewBlockChain(blockChainAddress string) *BlockChain {
+// 创建区块链同时创建第一个区块
+func NewBlockChain(blockChainAddress string, port uint16) *BlockChain {
 	b := &Block{}
 	bc := new(BlockChain)
 	bc.blockChainAddress = blockChainAddress
+	//nonce为0,使用空区块的hash,创建第一个区块
 	bc.CreateBlock(0, b.Hash())
+	bc.Port = port
 	return bc
+}
+
+func (bc *BlockChain) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Blocks []*Block `json:"blocks"`
+	}{
+		Blocks: bc.chain,
+	})
 }
 
 func (bc *BlockChain) CreateBlock(nonce int, previousHash [32]byte) *Block {

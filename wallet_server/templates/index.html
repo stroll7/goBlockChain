@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>钱包</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/antd/4.16.13/antd.min.css" />
+    <script src="https://unpkg.com/react@16/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/antd/4.16.13/antd.min.js"></script>
+</head>
+<body>
+<!-- 添加一个用于挂载React组件的元素 -->
+<div id="wallet"></div>
+<script type="text/jsx">
+    // 定义组件
+    const Wallet = () => {
+        const { Input, Button } = antd; // 从antd中解构出Input和Button组件
+
+        const reload = () => {
+            window.location.assign(window.location);
+        }
+        const send = () => {
+            fetch('your-api-endpoint').then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+                .then(data => {
+                    console.log(data);
+                }).catch(error => {
+                console.error(error);
+            });
+        }
+        return (
+            <div>
+                <h1>我的钱包</h1>
+                <Button type="primary" id="reload-button" onClick={reload}>重新加载</Button>
+                <div>
+                    <Form
+                        name="basic"
+                        labelCol={{
+                            span: 8,
+                        }}
+                        wrapperCol={{
+                            span: 16,
+                        }}
+                        style={{
+                            maxWidth: 600,
+                        }}
+                        initialValues={{
+                            remember: true,
+                        }}
+                        onFinish={onFinish}
+                        onFinishFailed={onFinishFailed}
+                        autoComplete="off"
+                    >
+                        <Form.Item
+                            label="privateKey"
+                            name="私钥"
+                            rules={[
+                                {
+                                    required: true,
+                                    message: 'Please input your privateKey!',
+                                },
+                            ]}
+                        >
+                            <Input />
+                        </Form.Item>
+
+                        <Form.Item
+                            label="publicKey"
+                            name="公钥"
+                            rules={[
+                                {
+                                    required: true,
+                                    message: 'Please input your publicKey!',
+                                },
+                            ]}
+                        >
+                            <Input.Password />
+                        </Form.Item>
+
+                        <Form.Item
+                            name="区块链地址"
+                            valuePropName="blockChainAddress"
+                            wrapperCol={{
+                                offset: 8,
+                                span: 16,
+                            }}
+                        >
+                            <Checkbox>Remember me</Checkbox>
+                        </Form.Item>
+
+                        <Form.Item
+                            wrapperCol={{
+                                offset: 8,
+                                span: 16,
+                            }}
+                        >
+                            <Button type="primary" htmlType="submit">
+                                Submit
+                            </Button>
+                        </Form.Item>
+                    </Form>
+                </div>
+                <div>
+                    <h1>发送虚拟币</h1>
+                    <div>
+                        <div>
+                            <label htmlFor="address">发送地址：</label>
+                            <Input id="address" name="address" placeholder="请输入发送地址" />
+                        </div>
+                        <div>
+                            <label htmlFor="amount">发送数量：</label>
+                            <Input id="amount" name="amount" type="number" placeholder="请输入发送数量" />
+                        </div>
+                        <Button type="primary" onClick={send}>发送</Button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // 使用ReactDOM.render渲染组件
+    ReactDOM.render(<Wallet />, document.getElementById('wallet'));
+</script>
+</body>
+</html>

@@ -25,6 +25,9 @@ func main() {
 
 	fmt.Println("缩减公钥", w.BlockChainAddress())
 
+	t := wallet.NewTransaction(w.PrivateKey(), w.PublicKey(), w.BlockChainAddress(), "B", 3.0)
+	fmt.Printf("signature %s\n", t.GenerateSignature())
+
 	/*//初始化区块链
 	myBlockChainAddress := "my_blockChain_address"
 	blockChain := NewBlockChain(myBlockChainAddress)
