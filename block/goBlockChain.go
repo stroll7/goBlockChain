@@ -1,6 +1,8 @@
 package block
 
 import (
+	utils "GoProject/utils"
+	"crypto/ecdsa"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
@@ -82,6 +84,10 @@ func NewBlockChain(blockChainAddress string, port uint16) *BlockChain {
 	return bc
 }
 
+func (bc *BlockChain) TransactionPool() []*Transaction {
+	return bc.transactionPool
+}
+
 func (bc *BlockChain) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		Blocks []*Block `json:"blocks"`
@@ -146,14 +152,14 @@ func (bc *BlockChain) ProofOfWork() int {
 	return nonce
 }
 
-func (bc *BlockChain) Mining() bool {
+/*func (bc *BlockChain) Mining() bool {
 	bc.AddTransaction(MINING_SENDER, bc.blockChainAddress, MINING_REWARD)
 	nonce := bc.ProofOfWork()
 	previousHash := bc.LastBlock().Hash()
 	bc.CreateBlock(nonce, previousHash)
 	log.Println("action=mining, status=success")
 	return true
-}
+}*/
 
 func (bc *BlockChain) CalculateTotalAmount(blockChainAddress string) float32 {
 	var totalAmount float32 = 0.0
@@ -201,10 +207,56 @@ func (t *Transaction) MarshalJSON() ([]byte, error) {
 		Value:     t.value,
 	})
 }
+func (bc *BlockChain) CreateTransaction(sender string, recipient string, value float32,
+	senderPublicKey *ecdsa.PublicKey, s *utils.Signature) bool {
+	isTransaction := bc.AddTransaction(sender, recipient, value, senderPublicKey, s)
+	return isTransaction
+}
 
-func (bc *BlockChain) AddTransaction(sender string, recipient string, value float32) {
-	transaction := NewTransaction(sender, recipient, value)
-	bc.transactionPool = append(bc.transactionPool, transaction)
+func (bc *BlockChain) AddTransaction(sender string, recipient string, value float32, senderPublicKey *ecdsa.PublicKey,
+	s *utils.Signature) bool {
+	t := NewTransaction(sender, recipient, value)
+	if sender == MINING_SENDER {
+		bc.transactionPool = append(bc.transactionPool, t)
+		return true
+	}
+	if bc.VerifyTransactionSignature(senderPublicKey, s, t) {
+		if bc.CalculateTotalAmount(sender) < value {
+			log.Println("Error: Not enough balance in a wallet")
+			return false
+		}
+		bc.transactionPool = append(bc.transactionPool, t)
+		return true
+	} else {
+		log.Println("ERROR: Verify Transaction")
+	}
+	return false
+}
+
+func (bc *BlockChain) VerifyTransactionSignature(
+	senderPublicKey *ecdsa.PublicKey, s *utils.Signature, t *Transaction) bool {
+	m, _ := json.Marshal(t)
+	h := sha256.Sum256([]byte(m))
+	return ecdsa.Verify(senderPublicKey, h[:], s.R, s.S)
+}
+
+type TransactionRequest struct {
+	SenderBlockChainAddress   *string  `json:"sender_blockchain_address"`
+	ReceiverBlockChainAddress *string  `json:"receiver_blockchain_address"`
+	SenderPublicKey           *string  `json:"sender_public_key"`
+	Value                     *float32 `json:"value"`
+	Signature                 *string  `json:"signature"`
+}
+
+func (tr *TransactionRequest) Validate() bool {
+	if tr.SenderBlockChainAddress == nil ||
+		tr.ReceiverBlockChainAddress == nil ||
+		tr.SenderPublicKey == nil ||
+		tr.Value == nil ||
+		tr.Signature == nil {
+		return false
+	}
+	return true
 }
 
 /**

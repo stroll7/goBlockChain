@@ -59,6 +59,18 @@ func NewWallet() *Wallet {
 	return w
 }
 
+func (w *Wallet) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		PrivateKey        string `json:"private_key"`
+		PublicKey         string `json:"public_key"`
+		BlockChainAddress string `json:"block_chain_address"`
+	}{
+		PrivateKey:        w.PrivateKeyStr(),
+		PublicKey:         w.PublicKeyStr(),
+		BlockChainAddress: w.blockChainAddress,
+	})
+}
+
 func (w *Wallet) Prinr() {
 	fmt.Printf("privateKey:%x\n", w.privateKey)
 	fmt.Printf("publicKey:%x\n", w.publicKey)
@@ -77,7 +89,7 @@ func (w *Wallet) PublicKey() *ecdsa.PublicKey {
 }
 
 func (w *Wallet) PublicKeyStr() string {
-	return fmt.Sprintf("%x%x", w.publicKey.X.Bytes(), w.publicKey.Y.Bytes())
+	return fmt.Sprintf("%064x%064x", w.publicKey.X.Bytes(), w.publicKey.Y.Bytes())
 }
 
 func (w *Wallet) BlockChainAddress() string {
@@ -117,4 +129,23 @@ func (t *Transaction) MarshalJSON() ([]byte, error) {
 		ReceiverAddr: t.receiverBlockChainAddress,
 		Value:        t.value,
 	})
+}
+
+type TransactionRequest struct {
+	SenderPrivateKey          *string `json:"sender_private_key"`
+	SenderBlockChainAddress   *string `json:"sender_block_chain_address"`
+	ReceiverBlockChainAddress *string `json:"receiver_block_chain_address"`
+	SenderPublicKey           *string `json:"sender_public_key"`
+	Value                     *string `json:"value"`
+}
+
+func (tr *TransactionRequest) Validate() bool {
+	if tr.SenderPrivateKey == nil ||
+		tr.SenderBlockChainAddress == nil ||
+		tr.ReceiverBlockChainAddress == nil ||
+		tr.SenderPublicKey == nil ||
+		tr.Value == nil {
+		return false
+	}
+	return true
 }

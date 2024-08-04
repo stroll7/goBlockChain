@@ -2,129 +2,174 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>钱包</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/antd/4.16.13/antd.min.css" />
-    <script src="https://unpkg.com/react@16/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/antd/4.16.13/antd.min.js"></script>
+    <title>React.js表单提交示例</title>
+    <!-- 引入Ant Design的CSS，如果使用Ant Design组件 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/antd/4.16.13/antd.min.css"/>
+    <!-- 其他样式 -->
 </head>
 <body>
 <!-- 添加一个用于挂载React组件的元素 -->
-<div id="wallet"></div>
-<script type="text/jsx">
-    // 定义组件
-    const Wallet = () => {
-        const { Input, Button } = antd; // 从antd中解构出Input和Button组件
+<div id="app"></div>
+<!-- 引入React和ReactDOM -->
+<script src="https://unpkg.com/react@16/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
 
-        const reload = () => {
-            window.location.assign(window.location);
+<!-- 引入Babel用于JSX -->
+<script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+
+<!-- 引入Ant Design的JavaScript，如果使用Ant Design组件 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/antd/4.16.13/antd.min.js"></script>
+
+<!-- React组件 -->
+<script type="text/jsx">
+    class FormComponent extends React.Component {
+        constructor(props) {
+            super(props);
+            this.state = {
+                sender_private_key: '',
+                sender_public_key: '',
+                sender_block_chain_address: '',
+                receiver_block_chain_address: '',
+                value: '',
+            };
         }
-        const send = () => {
-            fetch('your-api-endpoint').then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-                .then(data => {
-                    console.log(data);
-                }).catch(error => {
-                console.error(error);
+
+        handleSubmit = (event) => {
+            event.preventDefault();
+            const {sender_private_key, sender_public_key,sender_block_chain_address} = this.state;
+            // 使用fetch API发送Ajax请求
+            fetch('http://localhost:8080/wallet', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    sender_private_key,
+                    sender_public_key,
+                    sender_block_chain_address
+                }),
+            }).then(response => response.json()).then(data => {
+                    console.log('Success:', data);
+                    alert('表单提交成功!');
+                }).catch((error) => {
+                    console.error('Error:', error);
+                    alert('表单提交失败!');
+                });
+        }
+        sendSubmit = (event) => {
+            event.preventDefault();
+            const {sender_private_key, sender_public_key,sender_block_chain_address,receiver_block_chain_address,value} = this.state;
+            // 使用fetch API发送Ajax请求
+            fetch('http://localhost:8080/transaction', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    sender_private_key,
+                    sender_public_key,
+                    sender_block_chain_address,
+                    receiver_block_chain_address,
+                    value,
+                }),
+            }).then(response => response.json()).then(data => {
+                console.log('Success:', data);
+                alert('表单提交成功!');
+            }).catch((error) => {
+                console.error('Error:', error);
+                alert('表单提交失败!');
             });
         }
-        return (
-            <div>
-                <h1>我的钱包</h1>
-                <Button type="primary" id="reload-button" onClick={reload}>重新加载</Button>
+
+        handleInputChange = (event) => {
+            const {name, value} = event.target;
+            this.setState({
+                [name]: value
+            });
+        }
+
+        render() {
+            const {sender_private_key, sender_public_key, sender_block_chain_address,receiver_block_chain_address,value} = this.state;
+            return (
                 <div>
-                    <Form
-                        name="basic"
-                        labelCol={{
-                            span: 8,
-                        }}
-                        wrapperCol={{
-                            span: 16,
-                        }}
-                        style={{
-                            maxWidth: 600,
-                        }}
-                        initialValues={{
-                            remember: true,
-                        }}
-                        onFinish={onFinish}
-                        onFinishFailed={onFinishFailed}
-                        autoComplete="off"
-                    >
-                        <Form.Item
-                            label="privateKey"
-                            name="私钥"
-                            rules={[
-                                {
-                                    required: true,
-                                    message: 'Please input your privateKey!',
-                                },
-                            ]}
-                        >
-                            <Input />
-                        </Form.Item>
+                    <div>
+                        <h1>我的钱包</h1>
 
-                        <Form.Item
-                            label="publicKey"
-                            name="公钥"
-                            rules={[
-                                {
-                                    required: true,
-                                    message: 'Please input your publicKey!',
-                                },
-                            ]}
-                        >
-                            <Input.Password />
-                        </Form.Item>
-
-                        <Form.Item
-                            name="区块链地址"
-                            valuePropName="blockChainAddress"
-                            wrapperCol={{
-                                offset: 8,
-                                span: 16,
-                            }}
-                        >
-                            <Checkbox>Remember me</Checkbox>
-                        </Form.Item>
-
-                        <Form.Item
-                            wrapperCol={{
-                                offset: 8,
-                                span: 16,
-                            }}
-                        >
-                            <Button type="primary" htmlType="submit">
-                                Submit
-                            </Button>
-                        </Form.Item>
-                    </Form>
-                </div>
-                <div>
-                    <h1>发送虚拟币</h1>
+                        <form onSubmit={this.handleSubmit}>
+                            <label>
+                                私钥:
+                                <input
+                                    type="text"
+                                    name="sender_private_key"
+                                    value={sender_private_key}
+                                    onChange={this.handleInputChange}
+                                    required
+                                />
+                            </label>
+                            <br/>
+                            <label>
+                                公钥:
+                                <input
+                                    type="text"
+                                    name="sender_public_key"
+                                    value={sender_public_key}
+                                    onChange={this.handleInputChange}
+                                    required
+                                />
+                            </label>
+                            <br/>
+                            <br/>
+                            <label>
+                                区块链地址:
+                                <input
+                                    type="text"
+                                    name="sender_block_chain_address"
+                                    value={sender_block_chain_address}
+                                    onChange={this.handleInputChange}
+                                    required
+                                />
+                            </label>
+                            <br/>
+                            <button type="submit">提交</button>
+                        </form>
+                    </div>
                     <div>
                         <div>
-                            <label htmlFor="address">发送地址：</label>
-                            <Input id="address" name="address" placeholder="请输入发送地址" />
+                            <h1>发送虚拟币</h1>
+                            <form onSubmit={this.sendSubmit}>
+                                <label>
+                                    发送地址:
+                                    <input
+                                        type="text"
+                                        name="receiver_block_chain_address"
+                                        value={receiver_block_chain_address}
+                                        onChange={this.handleInputChange}
+                                        required
+                                    />
+                                </label>
+                                <br/>
+                                <label>
+                                    发送数量:
+                                    <input
+                                        type="text"
+                                        name="value"
+                                        value={value}
+                                        onChange={this.handleInputChange}
+                                        required
+                                    />
+                                </label>
+                                <br/>
+                                <button type="submit">提交</button>
+                            </form>
                         </div>
-                        <div>
-                            <label htmlFor="amount">发送数量：</label>
-                            <Input id="amount" name="amount" type="number" placeholder="请输入发送数量" />
-                        </div>
-                        <Button type="primary" onClick={send}>发送</Button>
                     </div>
                 </div>
-            </div>
-        );
-    };
+            );
+        }
+    }
 
     // 使用ReactDOM.render渲染组件
-    ReactDOM.render(<Wallet />, document.getElementById('wallet'));
+    ReactDOM.render(<FormComponent/>, document.getElementById('app'));
 </script>
 </body>
 </html>
