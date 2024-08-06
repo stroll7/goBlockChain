@@ -110,7 +110,7 @@ func NewTransaction(privateKey *ecdsa.PrivateKey, publicKey *ecdsa.PublicKey,
 }
 
 func (t *Transaction) GenerateSignature() *utils.Signature {
-	//序列哈
+	//序列化
 	m, _ := json.Marshal(t)
 	//使用SHA-256对序列化后的交易数据进行哈希运算，得到交易的哈希值。
 	h := sha256.Sum256([]byte(m))

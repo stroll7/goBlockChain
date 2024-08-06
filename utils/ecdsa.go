@@ -5,6 +5,7 @@ import (
 	"crypto/elliptic"
 	"encoding/hex"
 	"fmt"
+	"log"
 	"math/big"
 )
 
@@ -32,6 +33,8 @@ func String2BigIntTuple(s string) (big.Int, big.Int) {
 
 func SignatureFromString(s string) *Signature {
 	r, y := String2BigIntTuple(s)
+	log.Println(&r)
+	log.Println(&y)
 	return &Signature{&r, &y}
 }
 

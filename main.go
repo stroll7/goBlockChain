@@ -21,9 +21,9 @@ func main() {
 
 	//加密
 	fmt.Println("加密私钥：", w.PrivateKeyStr())
-	fmt.Println("加密私钥：", w.PublicKeyStr())
+	fmt.Println("加密公钥：", w.PublicKeyStr())
 
-	fmt.Println("缩减公钥", w.BlockChainAddress())
+	fmt.Println("节点地址", w.BlockChainAddress())
 
 	t := wallet.NewTransaction(w.PrivateKey(), w.PublicKey(), w.BlockChainAddress(), "B", 3.0)
 	fmt.Printf("signature %s\n", t.GenerateSignature())
